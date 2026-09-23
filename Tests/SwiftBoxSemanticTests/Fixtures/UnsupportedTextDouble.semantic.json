@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "sourceFile": "Aurora.swift",
+  "symbols": [],
+  "closures": [],
+  "root": {
+    "app": {
+      "body": [
+        { "vStack": { "children": [] } }
+      ]
+    }
+  },
+  "diagnostics": [
+    {
+      "severity": "error",
+      "message": "No matching Text initializer for (Double).",
+      "location": { "file": "Aurora.swift", "line": 3, "column": 9 },
+      "symbolID": null
+    }
+  ]
+}

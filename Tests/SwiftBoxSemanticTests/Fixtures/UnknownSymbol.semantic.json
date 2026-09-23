@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "sourceFile": "Aurora.swift",
+  "symbols": [
+    {
+      "id": { "rawValue": 1 },
+      "name": "count",
+      "type": "int",
+      "kind": "state",
+      "mutable": true,
+      "declaration": { "file": "Aurora.swift", "line": 2, "column": 16 }
+    }
+  ],
+  "closures": [],
+  "root": {
+    "app": {
+      "body": [
+        {
+          "state": {
+            "symbol": { "rawValue": 1 },
+            "initialValue": { "integer": 0 }
+          }
+        },
+        { "vStack": { "children": [] } }
+      ]
+    }
+  },
+  "diagnostics": [
+    {
+      "severity": "error",
+      "message": "Cannot find 'counter' in scope.",
+      "location": { "file": "Aurora.swift", "line": 4, "column": 14 },
+      "symbolID": null
+    }
+  ]
+}

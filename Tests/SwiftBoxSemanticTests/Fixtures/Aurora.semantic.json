@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "sourceFile": "Aurora.swift",
+  "symbols": [
+    {
+      "id": { "rawValue": 1 },
+      "name": "count",
+      "type": "int",
+      "kind": "state",
+      "mutable": true,
+      "declaration": { "file": "Aurora.swift", "line": 2, "column": 16 }
+    }
+  ],
+  "closures": [
+    {
+      "functionID": { "rawValue": 1 },
+      "captures": [
+        {
+          "symbolID": { "rawValue": 1 },
+          "name": "count",
+          "type": "int",
+          "kind": "state"
+        }
+      ],
+      "body": [
+        {
+          "assign": {
+            "target": { "rawValue": 1 },
+            "value": {
+              "binary": {
+                "operator": "add",
+                "lhs": { "variable": { "rawValue": 1 } },
+                "rhs": { "integer": 1 }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "root": {
+    "app": {
+      "body": [
+        {
+          "state": {
+            "symbol": { "rawValue": 1 },
+            "initialValue": { "integer": 0 }
+          }
+        },
+        {
+          "vStack": {
+            "children": [
+              { "text": { "value": { "string": "Hello, scientist" } } },
+              {
+                "button": {
+                  "label": { "string": "Poke" },
+                  "action": { "rawValue": 1 }
+                }
+              },
+              { "text": { "value": { "variable": { "rawValue": 1 } } } }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "diagnostics": []
+}
