@@ -82,7 +82,7 @@ enum BuiltinResolver {
         context: AnalyzerContext
     ) {
         let matches = context.builtins.matches(name: name, argumentTypes: argumentTypes)
-        let argDescription = argumentTypes.map(\ .description).joined(separator: ", ")
+        let argDescription = argumentTypes.map(\.description).joined(separator: ", ")
         if matches.count > 1 {
             context.report(.error, "Ambiguous SwiftBox call to \(name)(\(argDescription)).", at: call)
         } else if context.builtins.candidates(for: name).isEmpty {
