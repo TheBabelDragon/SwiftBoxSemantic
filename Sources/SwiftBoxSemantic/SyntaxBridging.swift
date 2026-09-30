@@ -55,7 +55,8 @@ enum SyntaxBridging {
         if let literal = expr.as(StringLiteralExprSyntax.self) {
             // Phase 0 supports plain, non-interpolated string literals only.
             guard literal.segments.count == 1,
-                  case let .stringSegment(segment)? = literal.segments.first else {
+                  let first = literal.segments.first,
+                  case let .stringSegment(segment) = first else {
                 context.report(.error, "String interpolation is not supported yet.", at: literal)
                 return nil
             }

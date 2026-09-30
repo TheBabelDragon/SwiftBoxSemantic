@@ -1,57 +1,67 @@
 # SwiftBoxSemantic — Phase 0
 
-Implements the frontend contract: SwiftSyntax → hoist → analyze/type-check
-→ (captures fused into closure analysis) → normalize diagnostics →
-`SBSemanticModel` → deterministic JSON.
+Implements the frontend contract:
 
-## One deliberate deviation from the sketch
+```
+Aurora.swift
+    ↓
+SwiftSyntax (syntax-only)
+    ↓
+hoisting
+    ↓
+symbol resolution
+    ↓
+expression type checking
+    ↓
+builtin resolution
+    ↓
+closure / capture analysis
+    ↓
+SBSemanticModel
+    ↓
+deterministic JSON
+```
 
-State declarations use **`@State var count: Int = 0`**, not `state var count: Int = 0`.
-`state` isn't a real Swift declaration modifier, so SwiftSyntax's parser has
-nowhere to put it — it would either misparse as a bare identifier
-expression or produce a parse-recovery error before semantic analysis ever
-runs. `@State` is real, parseable Swift attribute syntax (and matches
-SwiftUI's own convention), so it's what `DeclarationHoister` looks for.
-Every fixture and test in this package uses `@State`.
+## Supported state syntax
 
-## Structural additions beyond the original sketch
+State declarations use **`@State var count: Int = 0`**.
 
-- `SBClosureInfo` gained a `body: [SBStatement]` field. The original sketch
-  only carried `captures` — enough to know a closure touches `count`, but
-  nothing that lets an IR builder reconstruct *what* the closure computes
-  (`count += 1` vs. `count -= 1` vs. anything else). `SBStatement` is a
-  minimal `.assign` / `.expression` enum, just enough for Phase 0's
-  parameterless `() -> Void` action closures.
-- `FunctionID` is a distinct `RawRepresentable` type, not a bare `Int`,
-  for the same reason `SymbolID` is — so a closure ID and a symbol ID can
-  never be silently swapped.
-- `SBBuiltinTable` exposes `matches(name:argumentTypes:)` in addition to
-  `resolve(...)`, so overload-failure diagnostics can distinguish "unknown
-  view", "no matching overload", and "ambiguous" (>1 exact match) instead
-  of collapsing all three into one message.
+`@State` is real, parseable Swift attribute syntax (matching SwiftUI convention). The earlier pseudo-syntax `state var …` is **not** used and is not supported.
 
-## Passes, and where they actually fuse
+## Design invariants (Phase 0)
 
-The three-phase contract (hoist → analyze/type-check → capture analysis)
-is preserved as a *guarantee* — captures are always keyed by `SymbolID`,
-never by name — but capture derivation is fused into closure-body analysis
-in `ClosureAnalyzer` rather than run as a fully separate walk. Phase 0
-closures introduce no local bindings, so every identifier a closure body
-resolves is definitionally a capture; a second traversal would just
-re-derive what the first one already knew.
+- **SwiftSyntax is syntax-only.** No SwiftSyntax node types appear in the public semantic model (`SBSemanticModel`, `SBType`, `SBSemanticExpression`, etc.).
+- **Semantic analysis owns** symbols, types, and captures.
+- **Declarations are hoisted** before body / initializer analysis, so forward references to later `@State` bindings resolve.
+- **Builtin overload resolution is exact-match only.** No implicit conversions.  
+  Supported:
+  - `Text(String)`, `Text(Int)`
+  - `Button(String, () -> Void)`
+  - `VStack(() -> View)`, `HStack(() -> View)`
+- **Typed IDs:** `SymbolID` and `FunctionID` are distinct types (never bare `Int` in the model).
+- **Closure captures** record `SymbolID` + kind (`.state` for `@State`) and preserve body statements so a future IR builder can reconstruct e.g. `count += 1`.
+- **Diagnostics** contain severity, message, file/line/column, optional `symbolID`, and are normalized into deterministic source order.
+- **JSON is deterministic:** `SemanticJSON` always encodes with `.prettyPrinted` + `.sortedKeys`. Identical source → byte-for-byte identical JSON. `schemaVersion` is currently **1**.
+- **No general type inference.** Unannotated declarations produce the explicit-type diagnostic.
+- **SwiftBoxIR does not exist in this repository yet.**
+
+## Local verification
+
+```bash
+swift package resolve
+swift build
+swift test
+swift test --parallel
+```
+
+The test suite is intended to be deterministic under concurrent execution.
 
 ## Status
 
-Not compiled or run — this sandbox has no Swift toolchain and no network
-access to resolve the `swift-syntax` package dependency. The code is
-written against the SwiftSyntax 509.x API surface as best-known from
-training data; run `swift build && swift test` locally to verify, and
-expect to fix minor API-surface drift (e.g. exact `AttributeListSyntax`
-traversal, `StringLiteralSegmentListSyntax.Element` case naming) against
-whatever swift-syntax version actually resolves.
+Phase 0 semantic frontend is implemented against the SwiftSyntax 509.x surface. Minor API-surface drift (attribute traversal, string-segment cases, etc.) may require tiny adjustments against the exact resolved swift-syntax version; the semantic contract itself is stable.
+
+Do **not** start SwiftBoxIR, the VM, hot reload, generics, protocols, optionals, arrays, async, or general inference until this frontend is green on your machine.
 
 ## Next step
 
-Do not build `SwiftBoxIR` yet, per the plan. Once `swift test` is green
-against the fixtures here, carve `SwiftBoxIR.Types` from what
-`SBSemanticModel` actually promises — not before.
+Once `swift test` is green against the fixtures, design `SwiftBoxIR` from the actual `SBSemanticModel` contract — not before.

@@ -61,8 +61,9 @@ enum BuiltinResolver {
             guard let (label, labelType) = SyntaxBridging.analyzeExpression(labelArg.expression, scope: scope, context: context) else {
                 return nil
             }
-            guard context.builtins.resolve(name: "Button", argumentTypes: [labelType, .function(parameters: [], result: .void)]) != nil else {
-                reportOverloadFailure(name: "Button", argumentTypes: [labelType], call: call, context: context)
+            let buttonArgTypes: [SBType] = [labelType, .function(parameters: [], result: .void)]
+            guard context.builtins.resolve(name: "Button", argumentTypes: buttonArgTypes) != nil else {
+                reportOverloadFailure(name: "Button", argumentTypes: buttonArgTypes, call: call, context: context)
                 return nil
             }
             let functionID = ClosureAnalyzer.analyze(trailing, enclosingScope: scope, context: context)
@@ -81,7 +82,7 @@ enum BuiltinResolver {
         context: AnalyzerContext
     ) {
         let matches = context.builtins.matches(name: name, argumentTypes: argumentTypes)
-        let argDescription = argumentTypes.map(\.description).joined(separator: ", ")
+        let argDescription = argumentTypes.map(\ .description).joined(separator: ", ")
         if matches.count > 1 {
             context.report(.error, "Ambiguous SwiftBox call to \(name)(\(argDescription)).", at: call)
         } else if context.builtins.candidates(for: name).isEmpty {
